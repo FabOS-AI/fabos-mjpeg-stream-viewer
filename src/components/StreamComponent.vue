@@ -20,11 +20,11 @@
         const res = await fetch(url).then(
           (response) => {
             console.log("successful recieved response from AAS server ", response)
+            return response.json()
           }).catch(exception => {
             console.error('stream url fetch failed: ' + exception)
+            return null
           });
-        const data = await res.json()
-        return data
       }
     },
     async created() {
