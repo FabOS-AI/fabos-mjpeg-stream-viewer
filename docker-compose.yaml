@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  stream-viewer:
+    image: registry.gitlab.cc-asp.fraunhofer.de/ipa-digitools/mlops/docker/mjpeg-stream-viewer
+    container_name: mjpeg-stream-viewer 
+    ports:
+      - "8080:80"
+    environment:
+      - VUE_APP_AAS_SERVER_HOST=http://localhost:4001/aasServer
+      - VUE_APP_AAS_ID=IDSCamAAS001
