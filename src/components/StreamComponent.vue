@@ -17,7 +17,7 @@
     methods: {
       async fetchStreamURL() {
         const url = getEnv('VUE_APP_AAS_SERVER_HOST') + '/shells/' + getEnv('VUE_APP_AAS_ID') + '/aas/submodels/OperationalData/submodel/submodelElements/Endpoint/value'
-        const res = await fetch(url).then(
+        let res = await fetch(url).then(
           (response) => {
             console.log("successful recieved response from AAS server ", response)
             return response.json()
@@ -25,6 +25,7 @@
             console.error('stream url fetch failed: ' + exception)
             return null
           });
+        return res
       }
     },
     async created() {
