@@ -19,6 +19,6 @@ build:
 
   # Run this job in a branch where a Dockerfile exists
   rules:
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "main"
       exists:
         - Dockerfile
