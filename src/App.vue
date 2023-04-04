@@ -1,18 +1,18 @@
 <template>
   <div class="container">
-    <Header title="MJPEG Camera Stream"/>
+    <!-- <Header title="MJPEG Camera Stream"/> -->
     <StreamComponent/>
 
   </div>
   </template>
 
 <script>
-import Header from './components/Header.vue';
+// import Header from './components/Header.vue';
 import StreamComponent from './components/StreamComponent.vue';
 export default {
   name: 'App',
   components: {
-    Header,
+    // Header,
     StreamComponent
 
   }
