@@ -2,6 +2,7 @@ version: "3.9"
 services:
   stream-viewer:
     image: registry.gitlab.cc-asp.fraunhofer.de/ipa-digitools/mlops/docker/mjpeg-stream-viewer
+    build: .
     container_name: mjpeg-stream-viewer 
     ports:
       - "8080:80"
