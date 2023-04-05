@@ -7,6 +7,7 @@
         close-label="Close Alert"
         :color="params.color"
         :title="params.title"
+        icon="mdi-alert"
       >
         {{params.text}}
       </v-alert>

@@ -12,16 +12,9 @@
           <v-btn @click="doRefresh" color="#00a0e3" class="text-white">Fetch AAS</v-btn>
         </v-col>
       </v-row>
-      <v-row> 
-        <alert 
-          :params="alertParams"
-          :alert="visible">
-        </alert>
-
-      </v-row>
       <v-row max-width="200px" align="center" align-content="center" justify="center">
-
-
+        
+        
         <image-placeholder :src="imgSrc">
 
           <v-card loading class="pa-10" max-width="400px" align="center" align-content="center" justify="center">
@@ -34,7 +27,7 @@
             </div>
           </v-card>
         </image-placeholder>
-
+        
       </v-row>
       <v-row>
         <h3>Request Meta data</h3>
@@ -62,9 +55,16 @@
             >
           <td>{{ item.name }}</td>
           <td>{{ item.value }}</td>
-          </tr>
+        </tr>
           </tbody>
         </v-table>
+      </v-row>
+      <v-row> 
+        <alert 
+          :params="alertParams"
+          :alert="visible">
+        </alert>
+      
       </v-row>
     </v-container>
 
@@ -124,13 +124,13 @@ export default {
 
     async discoverAasServer() {
 
-      let url = getEnv('VUE_APP_AAS_REGISTRY_HOST') + '/api/v1/registry/' + getEnv('VUE_APP_AAS_ID')
+      let url = getEnv('VUE_APP_AAS_REGISTRY') + '/api/v1/registry/' + getEnv('VUE_APP_AAS_ID')
       this.updateMetaData('AAS Registry and ID', url)
       let res = await fetch(url).then(
         (response) => {
           return response.json()
         }).catch(exception => {
-          console.error(`AAS fetch for ID '${getEnv('VUE_APP_AAS_ID')}' from registry '${getEnv('VUE_APP_AAS_REGISTRY_HOST')}' failed: \n` + exception)
+          console.error(`AAS fetch for ID '${getEnv('VUE_APP_AAS_ID')}' from registry '${getEnv('VUE_APP_AAS_REGISTRY')}' failed: \n` + exception)
           return null
         });
       return res
@@ -192,7 +192,7 @@ export default {
           this.updateAlert("did not find submodel 'OperationalData' in AAS from registry")
         }
       } else {
-       this.updateAlert("did not receive any submodels from AAS registry for AAS with id: " + getEnv('VUE_APP_AAS_ID') + " at: " + getEnv('VUE_APP_AAS_REGISTRY_HOST'));
+       this.updateAlert("did not receive any submodels from AAS registry for AAS with id: " + getEnv('VUE_APP_AAS_ID') + " at: " + getEnv('VUE_APP_AAS_REGISTRY'));
       }
     }
   },
