@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  stream-viewer:
+    image: fabos4ai/mjpeg-stream-viewer:latest
+    build: .
+    restart: always
+    container_name: mjpeg-stream-viewer 
+    ports:
+      - "8080:80"
+    environment:
+      - VUE_APP_AAS_REGISTRY=http://localhost:4000/registry
+      - VUE_APP_AAS_ID=IDSCamAAS001
