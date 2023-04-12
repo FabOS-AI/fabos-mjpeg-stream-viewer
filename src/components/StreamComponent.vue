@@ -166,7 +166,16 @@ export default {
       if (registryResponse != null) {
 
         console.log("found AAS at registry:", registryResponse)
-        let operationSubmodel = registryResponse.submodels.filter((sm) => sm.idShort === "OperationalData")
+        let operationSubmodel = registryResponse.submodels.filter((sm) => {
+          try {
+            return sm.semanticId.keys[0].value === "FabOSCamera"
+          } catch (error) {
+            console.error("error while filtering submodels: ", error);
+            return false
+          }
+          
+        })
+        console.log("found submodel at registry:", operationSubmodel)
 
         if (typeof operationSubmodel !== "undefined") {
 
