@@ -168,7 +168,7 @@ export default {
         console.log("found AAS at registry:", registryResponse)
         let operationSubmodel = registryResponse.submodels.filter((sm) => {
           try {
-            return sm.semanticId.keys[0].value === "FabOSCamera"
+            return sm.semanticId.keys[0].value === "fabos_camera"
           } catch (error) {
             console.error("error while filtering submodels: ", error);
             return false
