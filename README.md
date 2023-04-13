@@ -1,28 +1,9 @@
 # mjpeg-stream-viewer
 
-## Project setup
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Environment
 
 
-### Using VAriables from Docker Compose  
-- https://github.com/juanise/jvjr-docker-env
+| Variable             | Description                                                 | Type   | Default Value                  |
+| -------------------- | ----------------------------------------------------------- | ------ | ------------------------------ |
+| VUE_APP_AAS_REGISTRY | An AAS registry host, where the VUE_APP_AAS_ID can be found | String | http://localhost:4000/registry |
+| VUE_APP_AAS_ID       | The AAS ID to be used for the endpoint lookup               | String | IDSCamAAS001                   |
