@@ -122,35 +122,59 @@ export default {
     }
   },
 
-    async discoverAasServer() {
+    async getAasDescriptor() {
+      let shellRegistryBaseUrl = getEnv('VUE_APP_AAS_REGISTRY');
+      let aasId = getEnv('VUE_APP_AAS_ID');
+      let aasIdEncoded = btoa(aasId);
 
-      let url = getEnv('VUE_APP_AAS_REGISTRY') + '/api/v1/registry/' + getEnv('VUE_APP_AAS_ID')
-      this.updateMetaData('AAS Registry and ID', url)
-      let res = await fetch(url).then(
+      let url = `${shellRegistryBaseUrl}/shell-descriptors/${aasIdEncoded}`
+      this.updateMetaData('Shell Descriptor Endpoint', url)
+      let shellRegistryResponse = await fetch(url).then(
         (response) => {
           return response.json()
         }).catch(exception => {
-          console.error(`AAS fetch for ID '${getEnv('VUE_APP_AAS_ID')}' from registry '${getEnv('VUE_APP_AAS_REGISTRY')}' failed: \n` + exception)
+          console.error(`Failed to fetch AAS descriptor from registry '${url}' failed: \n` + exception)
           return null
         });
-      return res
-
+      return shellRegistryResponse
     },
 
-    async fetchStreamURL(baseUrl) {
-      
-      const url = baseUrl + '/values'
-      let res = await fetch(url).then(
-        (response) => {
-          //console.log("successful recieved submodel from AAS server ", response)
-          let result = response.json()
-          console.log("found submodel at AAS server:", result)
-          return result
-        }).catch(exception => {
-          console.error('submodel fetch failed: ' + exception)
-          return null
-        });
-      return res
+    async getShell(shellEndpoint) {
+      let shellResponse = await fetch(shellEndpoint).then(
+          (response) => {
+            return response.json()
+          }).catch(exception => {
+        console.error(`Failed to fetch AAS from '${shellEndpoint}' failed: \n` + exception)
+        return null
+      });
+      return shellResponse
+    },
+
+    async getSubmodelDescriptor(submodelId) {
+      let submodelRegistryBaseUrl = getEnv('VUE_APP_SUBMODEL_REGISTRY');
+      let submodelIdEncoded = btoa(submodelId);
+
+      let url = `${submodelRegistryBaseUrl}/submodel-descriptors/${submodelIdEncoded}`
+      let submodelRegistryResponse = await fetch(url).then(
+          (response) => {
+            return response.json()
+          }).catch(exception => {
+        console.error(`Failed to fetch Submodel descriptor from registry '${url}': \n` + exception)
+        return null
+      });
+      return submodelRegistryResponse
+    },
+
+    async getSubmodelValues(submodelEndpoint) {
+      let url = `${submodelEndpoint}/$value`
+      let submodelValuesResponse = await fetch(url).then(
+          (response) => {
+            return response.json()
+          }).catch(exception => {
+        console.error(`Failed to fetch Submodel value representation from '${submodelEndpoint}': \n` + exception)
+        return null
+      });
+      return submodelValuesResponse
     },
 
     doRefresh(){
@@ -161,47 +185,64 @@ export default {
 
       this.imgSrc = null
 
-      let registryResponse = await this.discoverAasServer()
-
-      if (registryResponse != null) {
-
-        console.log("found AAS at registry:", registryResponse)
-        let operationSubmodel = registryResponse.submodels.filter((sm) => {
-          try {
-            return sm.semanticId.keys[0].value === "fabos_camera"
-          } catch (error) {
-            console.error("error while filtering submodels: ", error);
-            return false
-          }
-          
-        })
-        console.log("found submodel at registry:", operationSubmodel)
-
-        if (typeof operationSubmodel !== "undefined") {
-
-          let aasUrl = operationSubmodel[0].endpoints[0].address
-          this.updateMetaData("aas URL", aasUrl)
-          if (typeof aasUrl !== "undefined" && aasUrl.length > 0) {
-            let submodel = await this.fetchStreamURL(aasUrl)
-
-            if (Object.prototype.hasOwnProperty.call(submodel, 'Endpoint')) {
-
-              console.log("found matching submodel:", submodel)
-              this.updateMetaData("submodel", submodel)
-              this.imgSrc = submodel.Endpoint
-              // console.log(`loaded stream URL: '${this.imgSrc}'`)
-              this.updateAlert(`loaded stream URL: '${this.imgSrc}'`, 'success')
-            } else {
-              this.updateAlert("fetched submodel has no property 'Endpoint': " + submodel)
-            }
-          } else {
-            this.updateAlert("fetched submodel has no endpoint to access")
-          }
-        } else {
-          this.updateAlert("did not find submodel 'OperationalData' in AAS from registry")
-        }
+      let shellDescriptor = await this.getAasDescriptor();
+      let aasEndpoint = null
+      if (shellDescriptor !== null) {
+        console.log("Shell descriptor:", shellDescriptor)
+        aasEndpoint = shellDescriptor.endpoints[0].protocolInformation.href;
+        this.updateMetaData("AAS Endpoint", aasEndpoint)
       } else {
-       this.updateAlert("did not receive any submodels from AAS registry for AAS with id: " + getEnv('VUE_APP_AAS_ID') + " at: " + getEnv('VUE_APP_AAS_REGISTRY'));
+        this.updateAlert(`Unable to fetch AAS descriptor from registry: ${getEnv('VUE_APP_AAS_REGISTRY')} for AAS with id: ${getEnv('VUE_APP_AAS_ID')}`)
+        return;
+      }
+
+      let shell = await this.getShell(aasEndpoint);
+      let submodelIds = [];
+      if (shell !== null) {
+        shell.submodels.forEach((submodelRef) => {
+          submodelIds.push(submodelRef.keys[0].value)
+        })
+      } else {
+        this.updateAlert(`Unable to fetch submodel refs of AAS '${aasEndpoint}`)
+        return;
+      }
+
+      let cameraSubmodelId = null;
+      let cameraSubmodelDescriptor = null;
+      for await (const submodelId of submodelIds) {
+        let submodelDescriptor = await this.getSubmodelDescriptor(submodelId)
+        if (submodelDescriptor.semanticId !== null) {
+          let semanticId = submodelDescriptor.semanticId.keys[0].value
+          if (semanticId === "slm-camera") {
+            cameraSubmodelId = submodelId;
+            cameraSubmodelDescriptor = submodelDescriptor
+          }
+        }
+      }
+
+      let submodelValues = null;
+      let submodelEndpoint = null;
+      if (cameraSubmodelId !== null) {
+        console.log("Found submodel with semanticId 'slm-camera':", cameraSubmodelDescriptor)
+        this.updateMetaData("Camera Submodel ID", cameraSubmodelId)
+
+        submodelEndpoint = cameraSubmodelDescriptor.endpoints[0].protocolInformation.href
+        submodelValues = await this.getSubmodelValues(submodelEndpoint)
+      } else {
+        return;
+      }
+
+      if (submodelValues !== null) {
+        if (Object.prototype.hasOwnProperty.call(submodelValues, 'Endpoint')) {
+          this.updateMetaData("Submodel Values", submodelValues)
+          this.imgSrc = submodelValues.Endpoint
+          this.updateAlert(`Successfully loaded stream URL: '${this.imgSrc}'`, "success")
+        } else {
+          this.updateAlert("Failed to find property 'Endpoint' in submodel values submodel" + submodelValues)
+        }
+      }
+      else {
+        this.updateAlert(`Failed to fetch submodel values from '${submodelEndpoint}'`)
       }
     }
   },
