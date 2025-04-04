@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  DOCKER_COMPOSE_COMMAND: docker-compose -f build.yaml
+  DOCKER_COMPOSE_COMMAND: docker compose -f build.yaml
 
 jobs:
 
