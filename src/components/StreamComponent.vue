@@ -229,6 +229,7 @@ export default {
         submodelEndpoint = cameraSubmodelDescriptor.endpoints[0].protocolInformation.href
         submodelValues = await this.getSubmodelValues(submodelEndpoint)
       } else {
+        console.log("Unable to find submodel with semanticId 'slm-camera'")
         return;
       }
 
